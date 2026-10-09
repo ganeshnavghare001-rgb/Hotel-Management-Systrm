@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}View Bills - Grand Luxe Hotel{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <header class="admin-header">
+        <div class="container">
+            <h1><i class="fas fa-hotel"></i> Billing Management</h1>
+            <div class="admin-info">
+                <span>Welcome, {{ session.admin_username }}</span>
+                <a href="{{ url_for('admin_dashboard') }}" class="logout-btn">Back to Dashboard</a>
+                <a href="{{ url_for('admin_logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-section active">
+            <h2>All Bills</h2>
+            
+            {% if bills %}
+            <div class="bookings-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Guest Name</th>
+                            <th>Room</th>
+                            <th>Stay Period</th>
+                            <th>Total Amount</th>
+                            <th>Payment Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bill in bills %}
+                        <tr>
+                            <td>#{{ bill.id }}</td>
+                            <td>{{ bill.guest_name }}</td>
+                            <td>{{ bill.room_number }} ({{ bill.room_type }})</td>
+                            <td>{{ bill.check_in }} to {{ bill.check_out }}</td>
+                            <td>${{ "%.2f"|format(bill.total_amount) }}</td>
+                            <td>
+                                <span class="status-badge {% if bill.payment_status == 'Paid' %}paid{% elif bill.payment_status == 'Pending' %}pending{% else %}cancelled{% endif %}">
+                                    {{ bill.payment_status }}
+                                </span>
+                            </td>
+                            <td>{{ bill.created_date }}</td>
+                            <td>
+                                <div class="billing-actions">
+                                    <form method="POST" action="{{ url_for('update_payment_status') }}">
+                                        <input type="hidden" name="bill_id" value="{{ bill.id }}">
+                                        <select name="payment_status" onchange="this.form.submit()" style="padding: 5px;">
+                                            <option value="Pending" {% if bill.payment_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Paid" {% if bill.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                                            <option value="Cancelled" {% if bill.payment_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                    </form>
+                                    <a href="{{ url_for('print_invoice', bill_id=bill.id) }}" target="_blank" 
+                                       class="logout-btn" style="padding: 5px 10px; text-decoration: none;">
+                                        <i class="fas fa-print"></i> Invoice
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="no-bills" style="text-align: center; padding: 2rem;">
+                <h3>No bills generated yet.</h3>
+                <p>Generate bills from the booking management section.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
